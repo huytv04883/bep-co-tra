@@ -8,7 +8,7 @@ import Image from "next/image";
 
 interface FoodItemCardProps {
   item: Product;
-  onAddToCart: (itemId: string) => void;
+  onAddToCart: (item: Product) => void;
   onItemClick: (item: Product) => void;
 }
 
@@ -46,7 +46,7 @@ export function FoodItemCard({
         </div>
       </div>
       <Button
-        onClick={() => onAddToCart(item.id)}
+        onClick={() => onAddToCart(item)}
         size="sm"
         className="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white p-0 flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95 active:animate-pulse"
       >

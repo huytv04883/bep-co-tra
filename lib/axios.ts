@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = `https://radiant-prize-60d29bb915.strapiapp.com/api`;
+const API_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/api`;
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

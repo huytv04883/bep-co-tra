@@ -5,7 +5,7 @@ interface FoodSectionProps {
   title: string;
   items: Product[];
   showItemCount?: boolean;
-  onAddToCart: (itemId: string) => void;
+  onAddToCart: (item: Product) => void;
   onItemClick: (item: Product) => void;
 }
 
