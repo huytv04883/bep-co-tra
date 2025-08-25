@@ -5,17 +5,21 @@ interface FoodSectionProps {
   title: string;
   items: Product[];
   showItemCount?: boolean;
-  onAddToCart: (item: Product) => void;
+  onAddToCart: (
+    item: Product & {
+      count?: number;
+    }
+  ) => void;
   onItemClick: (item: Product) => void;
 }
 
-export function FoodSection({
+const FoodSection = ({
   title,
   items,
   showItemCount = false,
   onAddToCart,
   onItemClick,
-}: FoodSectionProps) {
+}: FoodSectionProps) => {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
@@ -38,4 +42,6 @@ export function FoodSection({
       </div>
     </div>
   );
-}
+};
+
+export default FoodSection;

@@ -2,20 +2,19 @@
 
 import { useGetAllCategory } from "@/hooks";
 import { useGetProductsList } from "@/hooks/useGetProductList";
-import { CartItem } from "@/types";
-import { Product } from "@/types/product";
-import { useState } from "react";
-import { CartSummary } from "./cart-summary";
-import { FoodSection } from "./food-section";
-import { AppHeader } from "./header";
-import { ItemSidebar } from "./item-sidebar";
-import { NavigationTabs } from "./navigation-tabs";
 import { useCart } from "@/stores";
-import { CartSidebar } from "./cart";
+import { Product } from "@/types/product";
+import { lazy, useEffect, useState } from "react";
+const CartSidebar = lazy(() => import("./cart/index"));
+const AppHeader = lazy(() => import("./header"));
+const NavigationTabs = lazy(() => import("./navigation-tabs"));
+const FoodSection = lazy(() => import("./food-section"));
+const DetailProductSidebar = lazy(() => import("./item-sidebar"));
 
 export function FoodOrderingApp() {
+  const [mounted, setMounted] = useState(false);
+
   const [activeTab, setActiveTab] = useState<string>("category");
-  const [cart, setCart] = useState<CartItem>({});
   const [selectedItem, setSelectedItem] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,37 +24,19 @@ export function FoodOrderingApp() {
     categorySlug: activeTab,
   });
 
-  const cartTotal = Object.entries(cart).reduce((total, [itemId, quantity]) => {
-    const allItems = products?.data ?? [];
-    const item = allItems.find((item) => item.id === itemId);
-    if (!item) return total;
-    const price = parseFloat(item.price);
-    const qty = Number(quantity);
-    return total + (isNaN(price) || isNaN(qty) ? 0 : price * qty);
-  }, 0);
-
-  const cartCount = Object.values(cart).reduce(
-    (total, quantity) => total + quantity,
-    0
-  );
-
-  const addToCart = (item: Product) => {
+  const handleAddToCart = (item: Product & {
+    count?: number;
+  }) => {
     setCartList([
       ...cartList,
       {
         id: item.id,
         name: item.name,
         price: item.price,
-        images: item.images
+        images: item.images,
+        count: item.count,
       },
     ]);
-  };
-
-  const addToCartFromSidebar = (itemId: string, quantity: number) => {
-    setCart((prev) => ({
-      ...prev,
-      [itemId]: (prev[itemId] || 0) + quantity,
-    }));
   };
 
   const handleItemClick = (item: Product) => {
@@ -72,9 +53,15 @@ export function FoodOrderingApp() {
     setIsCartOpen(false);
   };
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-white">
-      <AppHeader cartTotal={cartTotal} cartCount={cartCount} />
+    <main className="mx-auto min-h-screen max-w-md bg-white">
+      <AppHeader openCart={() => setIsCartOpen(true)} />
       <NavigationTabs
         data={categories?.data ?? []}
         activeTab={activeTab}
@@ -88,24 +75,18 @@ export function FoodOrderingApp() {
               "Dành cho bạn"
             }
             items={products?.data ?? []}
-            onAddToCart={addToCart}
+            onAddToCart={handleAddToCart}
             onItemClick={handleItemClick}
           />
         </div>
       </div>
-
-      <CartSummary cart={cart} />
-
-      <ItemSidebar
+      <DetailProductSidebar
         item={selectedItem}
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
-        onAddToCart={addToCartFromSidebar}
+        onAddToCart={handleAddToCart}
       />
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={handleCloseCart}
-      />
-    </div>
+      <CartSidebar isOpen={isCartOpen} onClose={handleCloseCart} />
+    </main>
   );
 }

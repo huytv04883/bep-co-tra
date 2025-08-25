@@ -18,7 +18,7 @@ export function AddToBasketButton({ totalPrice, onAddToCart }: AddToBasketButton
         onClick={onAddToCart}
         className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-colors duration-200"
       >
-        Add to Basket - {formatPrice(totalPrice)} đ
+        Thêm vào giỏ hàng - {formatPrice(totalPrice)} đ
       </Button>
     </div>
   )

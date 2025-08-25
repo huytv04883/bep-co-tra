@@ -10,11 +10,11 @@ interface NavigationTabsProps {
   data: Category[];
 }
 
-export function NavigationTabs({
+const NavigationTabs = ({
   activeTab,
   onTabChange,
   data,
-}: NavigationTabsProps) {
+}: NavigationTabsProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -152,3 +152,5 @@ export function NavigationTabs({
     </div>
   );
 }
+
+export default NavigationTabs;

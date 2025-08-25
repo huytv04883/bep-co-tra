@@ -1,40 +1,39 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 import { useState } from "react";
 import { AddToBasketButton } from "./sidebar/add-to-basket-button";
 import { ItemDetails } from "./sidebar/item-details";
 import { ItemSidebarHeader } from "./sidebar/item-sidebar-header";
 import { QuantityControls } from "./sidebar/quantity-controls";
-import { SpecialInstructions } from "./sidebar/special-instructions";
-import { cn } from "@/lib/utils";
-
 interface ItemSidebarProps {
   item: Product | null;
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (
-    itemId: string,
-    quantity: number,
-    specialInstructions: string
+    item: Product & {
+      count?: number;
+    }
   ) => void;
 }
 
-export function ItemSidebar({
+const ItemSidebar = ({
   item,
   isOpen,
   onClose,
   onAddToCart,
-}: ItemSidebarProps) {
+}: ItemSidebarProps) => {
   const [quantity, setQuantity] = useState(1);
-  const [specialInstructions, setSpecialInstructions] = useState("");
-
+  
   const handleAddToCart = () => {
     if (item) {
-      onAddToCart(item.id, quantity, specialInstructions);
+      onAddToCart({
+        ...item,
+        count: quantity,
+      });
       onClose();
       setQuantity(1);
-      setSpecialInstructions("");
     }
   };
 
@@ -67,11 +66,6 @@ export function ItemSidebar({
           <ItemSidebarHeader onClose={onClose} />
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             <ItemDetails item={item} />
-
-            <SpecialInstructions
-              value={specialInstructions}
-              onChange={setSpecialInstructions}
-            />
             <QuantityControls
               quantity={quantity}
               onQuantityChange={setQuantity}
@@ -85,4 +79,6 @@ export function ItemSidebar({
       </div>
     </>
   );
-}
+};
+
+export default ItemSidebar;

@@ -1,8 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useCart } from "@/stores";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, Trash2, X } from "lucide-react";
 import Image from "next/image";
 
 interface CartSidebarProps {
@@ -10,76 +11,135 @@ interface CartSidebarProps {
   onClose: () => void;
 }
 
-export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
-  const { cartTotal, cartList } = useCart();
-  if (cartList.length === 0) return null;
-  
+const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
+  const { cartList, getCartTotal, setCartList } = useCart();
+  const cartTotal = getCartTotal() ?? 0;
+  const { onRemoveCartById } = useCart();
+
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={cn(
+          "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
+          {
+            "opacity-100": isOpen,
+            "opacity-0 pointer-events-none": !isOpen,
+          }
+        )}
         onClick={onClose}
       />
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={cn(
+          "fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 transform transition-transform duration-300 ease-in-out",
+          {
+            "translate-x-0": isOpen,
+            "translate-x-full": !isOpen,
+          }
+        )}
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Giỏ đồ ăn</h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="p-4 border-b">
-            <h3 className="font-medium">Báo Đăng - Cơm Chiên, Mì Xào</h3>
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" />
-              <span>Thời gian giao: 15 phút (Cách bạn 1,5 km)</span>
-            </div>
-          </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {cartList.map((c) => (
-              <div key={c.id} className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-full bg-transparent"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-8 text-center font-medium">{c.count}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-full bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Item Info */}
-                <Image
-                  src={c.images[0].url || "/placeholder.svg"}
-                  alt={c.name}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
-                <div className="flex-1">
-                  <h4 className="font-medium text-sm">{c.name}</h4>
-                </div>
-                <div className="text-right">
-                  <span className="font-medium">
-                    {(Number(c.price) * (c.count ?? 1)).toLocaleString("vi-VN")}
-                  </span>
-                </div>
-              </div>
-            ))}
+            <>
+              {cartList.length === 0 ? (
+                <>
+                  <Image
+                    src="/cart-empty.svg"
+                    alt="Empty Cart"
+                    width={200}
+                    height={200}
+                    className="mx-auto"
+                  />
+                  <p className="text-center text-green-900">
+                    Giỏ hàng của bạn đang trống.
+                  </p>
+                </>
+              ) : (
+                <>
+                  {cartList.map((c) => (
+                    <div key={c.id} className="flex items-start space-x-3">
+                      <Image
+                        src={c.images[0].url || "/placeholder.svg"}
+                        alt={c.name}
+                        width={80}
+                        height={80}
+                        className="w-20 h-20 rounded-lg object-cover"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{c.name}</h4>
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-xs">Giá:</span>
+                            <span className="font-medium text-xs">
+                              {Number(c.price).toLocaleString("vi-VN")} đ
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-sm">Tổng:</span>
+                            <span className="font-medium text-sm">
+                              {(
+                                Number(c.price) * (c.count ?? 1)
+                              ).toLocaleString("vi-VN")}{" "}
+                              đ
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 w-6 p-0 bg-transparent"
+                          onClick={() =>
+                            setCartList(
+                              cartList.map((item) =>
+                                item.id === c.id
+                                  ? { ...item, count: (item.count ?? 1) - 1 }
+                                  : item
+                              )
+                            )
+                          }
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-5 text-center font-medium">
+                          {c.count}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 w-6 p-0 bg-transparent"
+                          onClick={() =>
+                            setCartList(
+                              cartList.map((item) =>
+                                item.id === c.id
+                                  ? { ...item, count: (item.count ?? 1) + 1 }
+                                  : item
+                              )
+                            )
+                          }
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 bg-transparent"
+                          onClick={() => onRemoveCartById(c.id)}
+                        >
+                          <Trash2 className="h-4 w-4" color="red" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </>
           </div>
           <div className="border-t p-4 space-y-4">
             <div className="flex justify-between items-center">
@@ -88,20 +148,21 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 {cartTotal.toLocaleString("vi-VN")} đ
               </span>
             </div>
-
-            <div className="text-sm text-muted-foreground">
-              Delivery Fee will be shown after you review order
-            </div>
             <div className="flex justify-between items-center text-lg font-semibold border-t pt-4">
               <span>Tổng cộng</span>
               <span>{cartTotal.toLocaleString("vi-VN")} đ</span>
             </div>
-            <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
-              Đăng nhập để đặt đơn
+            <Button
+              disabled={cartList.length === 0}
+              className="w-full bg-green-500 hover:bg-green-600 text-white"
+            >
+              Đặt hàng
             </Button>
           </div>
         </div>
       </div>
     </>
   );
-}
+};
+
+export default CartSidebar;
